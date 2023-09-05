@@ -126,27 +126,31 @@ class FileSearchApp(QMainWindow):
     def move_selected_files(self):
         if not self.selected_files or not self.destination_folder:
             return
-
+    
         # Get the total number of files for progress bar
         total_files = len(self.selected_files)
         processed_files = 0  # To keep track of processed files
-
-        for file_path in self.selected_files:
-            file_name = os.path.basename(file_path)
-            destination_path = os.path.join(self.destination_folder, file_name)
-            try:
-                shutil.move(file_path, destination_path)
-            except Exception as e:
-                print(f"Error moving file '{file_path}' to '{destination_path}': {str(e)}")
-
-            # Update the progress bar
-            processed_files += 1
-            progress_percentage = (processed_files / total_files) * 100
-            self.update_progress(progress_percentage)
-
+    
+        for row in range(self.table_widget.rowCount()):
+            checkbox_item = self.table_widget.cellWidget(row, 0)
+            if checkbox_item.isChecked():
+                file_path = self.selected_files[row]
+                file_name = os.path.basename(file_path)
+                destination_path = os.path.join(self.destination_folder, file_name)
+                try:
+                    shutil.move(file_path, destination_path)
+                except Exception as e:
+                    print(f"Error moving file '{file_path}' to '{destination_path}': {str(e)}")
+    
+                # Update the progress bar
+                processed_files += 1
+                progress_percentage = (processed_files / total_files) * 100
+                self.update_progress(progress_percentage)
+    
         # Clear the table and selected files
         self.table_widget.setRowCount(0)
         self.selected_files = []
+
 
     def toggle_select_all(self):
         # Toggle the selection of all checkboxes
