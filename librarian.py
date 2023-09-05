@@ -8,6 +8,7 @@ import os
 import sys
 import shutil
 from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QFileDialog, QLabel, QLineEdit, QTableWidget, QTableWidgetItem, QCheckBox, QProgressBar, QMessageBox
+from PyQt5.QtCore import QTimer
 
 class FileSearchApp(QMainWindow):
     def __init__(self):
@@ -15,6 +16,8 @@ class FileSearchApp(QMainWindow):
         self.initUI()
         self.folder_path = None  # Initialize folder_path
         self.destination_folder = None
+        self.progress_update_timer = QTimer(self)
+        self.progress_update_timer.timeout.connect(self.update_progress)
 
     def initUI(self):
         self.setWindowTitle('File Search and Move')
@@ -126,11 +129,11 @@ class FileSearchApp(QMainWindow):
     def move_selected_files(self):
         if not self.selected_files or not self.destination_folder:
             return
-    
+
         # Get the total number of files for progress bar
         total_files = len(self.selected_files)
         processed_files = 0  # To keep track of processed files
-    
+
         for row in range(self.table_widget.rowCount()):
             checkbox_item = self.table_widget.cellWidget(row, 0)
             if checkbox_item.isChecked():
@@ -141,16 +144,21 @@ class FileSearchApp(QMainWindow):
                     shutil.move(file_path, destination_path)
                 except Exception as e:
                     print(f"Error moving file '{file_path}' to '{destination_path}': {str(e)}")
-    
-                # Update the progress bar
+
+                # Update the progress information
                 processed_files += 1
-                progress_percentage = (processed_files / total_files) * 100
-                self.update_progress(progress_percentage)
-    
+
+                # Limit the progress bar update frequency for better visualization
+                if processed_files % 5 == 0:  # Update every 5 files (you can adjust this value)
+                    progress_percentage = (processed_files / total_files) * 100
+                    self.update_progress(progress_percentage)
+
         # Clear the table and selected files
         self.table_widget.setRowCount(0)
         self.selected_files = []
 
+        # Stop the progress bar timer
+        self.progress_update_timer.stop()
 
     def toggle_select_all(self):
         # Toggle the selection of all checkboxes
