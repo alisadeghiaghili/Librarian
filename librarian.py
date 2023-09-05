@@ -1,7 +1,13 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Tue Sep  5 15:26:18 2023
+
+@author: sadeghi.a
+"""
 import os
 import sys
 import shutil
-from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QFileDialog, QLabel, QLineEdit, QTableWidget, QTableWidgetItem, QCheckBox, QProgressBar
+from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QFileDialog, QLabel, QLineEdit, QTableWidget, QTableWidgetItem, QCheckBox, QProgressBar, QMessageBox
 
 class FileSearchApp(QMainWindow):
     def __init__(self):
