@@ -79,6 +79,9 @@ class FileSearchApp(QMainWindow):
         # Initialize variables
         self.selected_files = []
 
+        # Connect itemChanged signal to rename files
+        self.table_widget.itemChanged.connect(self.on_table_item_changed)
+
     def select_folder(self):
         folder = QFileDialog.getExistingDirectory(self, 'Select Folder')
         if folder:
@@ -149,6 +152,7 @@ class FileSearchApp(QMainWindow):
                 destination_path = os.path.join(self.destination_folder, file_name)
                 try:
                     shutil.move(file_path, destination_path)
+                    self.selected_files[row] = destination_path  # Update the file path
                 except Exception as e:
                     print(f"Error moving file '{file_path}' to '{destination_path}': {str(e)}")
 
@@ -186,6 +190,25 @@ class FileSearchApp(QMainWindow):
         else:
             self.progress_bar.setStyleSheet("QProgressBar::chunk { background-color: red; color: white; }")
 
+    def rename_file(self, row):
+        if row >= 0 and row < self.table_widget.rowCount():
+            new_file_name = self.table_widget.item(row, 1).text()
+            file_path = self.selected_files[row]
+            
+            if os.path.exists(file_path):
+                try:
+                    # Rename the file
+                    file_dir = os.path.dirname(file_path)
+                    new_file_path = os.path.join(file_dir, new_file_name)
+                    os.rename(file_path, new_file_path)
+                    self.selected_files[row] = new_file_path
+                except Exception as e:
+                    print(f"Error renaming file '{file_path}' to '{new_file_name}': {str(e)}")
+
+    def on_table_item_changed(self, item):
+        if item.column() == 1:  # Check if the changed item is in the "File" column
+            row = item.row()
+            self.rename_file(row)
 
 def main():
     app = QApplication(sys.argv)
