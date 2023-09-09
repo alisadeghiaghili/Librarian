@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Created on Tue Sep  5 15:26:18 2023
+Created on Sat Sep  9 15:52:44 2023
 
 @author: sadeghi.a
 """
@@ -8,7 +8,7 @@ import os
 import sys
 import shutil
 from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QFileDialog, QLabel, QLineEdit, QTableWidget, QTableWidgetItem, QCheckBox, QProgressBar, QMessageBox
-from PyQt5.QtCore import QTimer
+from PyQt5.QtCore import QTimer, Qt
 
 class FileSearchApp(QMainWindow):
     def __init__(self):
@@ -18,6 +18,8 @@ class FileSearchApp(QMainWindow):
         self.destination_folder = None
         self.progress_update_timer = QTimer(self)
         self.progress_update_timer.timeout.connect(self.update_progress)
+        self.search_progress = 0
+        self.move_progress = 0
 
     def initUI(self):
         self.setWindowTitle('File Search and Move')
@@ -42,6 +44,7 @@ class FileSearchApp(QMainWindow):
 
         # Create a progress bar
         self.progress_bar = QProgressBar()
+        self.progress_bar.setAlignment(Qt.AlignCenter)  # Center-align the percentage text
 
         # Create a button to select the destination folder
         self.select_dest_folder_button = QPushButton('Select Destination Folder')
@@ -117,10 +120,14 @@ class FileSearchApp(QMainWindow):
                     self.table_widget.setItem(row_position, 2, QTableWidgetItem(file_path))
                     self.selected_files.append(file_path)
 
-                # Update the progress bar
+                # Update the progress bar for searching
                 processed_files += 1
                 progress_percentage = (processed_files / total_files) * 100
-                self.update_progress(progress_percentage)
+                self.search_progress = progress_percentage
+                self.update_progress(self.search_progress)
+
+        # Set the progress bar to green after searching is complete
+        self.update_progress(100, is_searching=True)
 
     def search_files_enter(self):
         # This function is triggered when Enter key is pressed in the search text field
@@ -145,20 +152,18 @@ class FileSearchApp(QMainWindow):
                 except Exception as e:
                     print(f"Error moving file '{file_path}' to '{destination_path}': {str(e)}")
 
-                # Update the progress information
+                # Update the progress information for moving
                 processed_files += 1
-
-                # Limit the progress bar update frequency for better visualization
-                if processed_files % 5 == 0:  # Update every 5 files (you can adjust this value)
-                    progress_percentage = (processed_files / total_files) * 100
-                    self.update_progress(progress_percentage)
+                progress_percentage = (processed_files / total_files) * 100
+                self.move_progress = progress_percentage
+                self.update_progress(self.move_progress, is_searching=False)
 
         # Clear the table and selected files
         self.table_widget.setRowCount(0)
         self.selected_files = []
 
-        # Stop the progress bar timer
-        self.progress_update_timer.stop()
+        # Set the progress bar to red after moving is complete
+        self.update_progress(100, is_searching=False)
 
     def toggle_select_all(self):
         # Toggle the selection of all checkboxes
@@ -174,8 +179,12 @@ class FileSearchApp(QMainWindow):
         msg_box.setText(message)
         msg_box.exec_()
 
-    def update_progress(self, value):
+    def update_progress(self, value, is_searching=True):
         self.progress_bar.setValue(int(value))
+        if is_searching:
+            self.progress_bar.setStyleSheet("QProgressBar::chunk { background-color: green; color: white; }")
+        else:
+            self.progress_bar.setStyleSheet("QProgressBar::chunk { background-color: red; color: white; }")
 
 
 def main():
